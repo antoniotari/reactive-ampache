@@ -1,12 +1,12 @@
 <h4>Usage:</h4><br>
-add the library to your project :
+add the library to your project:
 ```java
 compile project(':reactive-ampache')
 ```
 
 <h4>init the library in your application class:</h4>
 ```java
-        AmpacheApi.INSTANCE.initSession(this);
+AmpacheApi.INSTANCE.initSession(this);
 ```
 
 <h4>if the user has already logged in before, and not logged out:</h4>
