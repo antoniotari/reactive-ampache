@@ -1,4 +1,4 @@
-<h2>An Android Library for Ampache<h2><br>
+<h2>An Android Library for Ampache<h2>
 
 <h3>Usage:</h3><br>
 
