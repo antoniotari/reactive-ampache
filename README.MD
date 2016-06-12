@@ -1,3 +1,5 @@
+<h2>An Android Library for Ampache<h2><br><br>
+
 <h3>Usage:</h3><br>
 
 <h4>init the library in your application class:</h4>
