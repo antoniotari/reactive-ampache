@@ -105,6 +105,9 @@ public enum AmpacheApi {
             public void call(final Subscriber<? super HandshakeResponse> subscriber) {
                 try {
                     HandshakeResponse handshakeResponse = mRawRequest.handshake();
+
+                    if (handshakeResponse.getError() != null) throw new AmpacheApiException(handshakeResponse.getError());
+
                     AmpacheSession.INSTANCE.setHandshakeResponse(handshakeResponse);
                     subscriber.onNext(handshakeResponse);
                     subscriber.onCompleted();
