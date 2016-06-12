@@ -1,9 +1,6 @@
 package com.antoniotari.reactiveampache.api;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,12 +31,25 @@ import rx.schedulers.Schedulers;
 public enum AmpacheApi {
     INSTANCE;
 
-    private RawRequest mRawRequest;
+    private static final String FILENAME_ARTISTS = "com.antoniotari.ampache.library.response.artists.json";
+    private static final String FILENAME_ALBUMS = "com.antoniotari.ampache.library.response.albums.json";
+    private static final String FILENAME_SONGS = "com.antoniotari.ampache.library.response.songs.json";
 
-    public void initSession(Context context){
+    private RawRequest mRawRequest;
+    private Context mContext;
+
+    public void initSession(Context context) {
         AmpacheSession.INSTANCE.init(context);
+        mContext = context.getApplicationContext();
     }
 
+    /**
+     * initialize the ampache user, use this before making any other API call
+     * @param ampacheUrl        url for the ampache server
+     * @param ampacheUser       ampache user username
+     * @param ampachePassword   ampache user password
+     * @return                  an observable that will complete if the user is valid otherwise goes onError
+     */
     public Observable<Void> initUser(final String ampacheUrl, String ampacheUser, String ampachePassword) {
         return Observable.create(new OnSubscribe<Void>() {
 
@@ -85,6 +95,9 @@ public enum AmpacheApi {
                 AmpacheSession.INSTANCE.getAmpachePassword());
     }
 
+    /**
+     * before making any API call must handshake with the server
+     */
     public Observable<HandshakeResponse> handshake() {
         return Observable.create(new OnSubscribe<HandshakeResponse>() {
 
@@ -105,39 +118,25 @@ public enum AmpacheApi {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * get a list of all the artists
+     */
     public Observable<List<Artist>> getArtists() {
         return Observable.create(new OnSubscribe<List<Artist>>() {
 
             @Override
             public void call(final Subscriber<? super List<Artist>> subscriber) {
                 try {
-                    ArtistsResponse artistsResponseCached = getCached("artists.json",ArtistsResponse.class);
-                    if (artistsResponseCached!=null && artistsResponseCached.getError()==null) {
+                    ArtistsResponse artistsResponseCached = getCached(FILENAME_ARTISTS, ArtistsResponse.class);
+                    if (artistsResponseCached != null && artistsResponseCached.getError() == null &&
+                            artistsResponseCached.getArtists() != null) {
                         subscriber.onNext(artistsResponseCached.getArtists());
                     }
 
-                    if (mRawRequest == null) {
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(AmpacheSession.INSTANCE.mContext, "mRawRequest null", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-
-                    if(AmpacheSession.INSTANCE.getHandshakeResponse()==null || AmpacheSession.INSTANCE.getHandshakeResponse().getAuth()==null){
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(AmpacheSession.INSTANCE.mContext,"AmpacheSession.INSTANCE.getHandshakeResponse() null",Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-
                     ArtistsResponse artistsResponse = mRawRequest.getArtists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
-                    if (artistsResponse.getError()!=null) throw new AmpacheApiException(artistsResponse.getError());
+                    if (artistsResponse.getError() != null) throw new AmpacheApiException(artistsResponse.getError());
 
-                    if(checkAndCache("artists.json",artistsResponse,artistsResponseCached)){
+                    if (checkAndCache(FILENAME_ARTISTS, artistsResponse, artistsResponseCached)) {
                         subscriber.onNext(artistsResponse.getArtists());
                     }
 
@@ -152,6 +151,9 @@ public enum AmpacheApi {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * get a list of all the albums for given artist
+     */
     public Observable<List<Album>> getAlbumsFromArtist(final String artistId) {
         return Observable.create(new OnSubscribe<List<Album>>() {
 
@@ -173,22 +175,24 @@ public enum AmpacheApi {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * get a list of all the albums
+     */
     public Observable<List<Album>> getAlbums() {
         return Observable.create(new OnSubscribe<List<Album>>() {
 
             @Override
             public void call(final Subscriber<? super List<Album>> subscriber) {
                 try {
-                    AlbumsResponse albumsResponseCached = getCached("albums.json",AlbumsResponse.class);
-                    if (albumsResponseCached!=null && albumsResponseCached.getError()==null) {
+                    AlbumsResponse albumsResponseCached = getCached(FILENAME_ALBUMS, AlbumsResponse.class);
+                    if (albumsResponseCached != null && albumsResponseCached.getError() == null) {
                         subscriber.onNext(albumsResponseCached.getAlbums());
                     }
 
-                    AlbumsResponse albumsResponse =
-                            mRawRequest.getAlbums(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
-                    if (albumsResponse.getError()!=null) throw new AmpacheApiException(albumsResponse.getError());
+                    AlbumsResponse albumsResponse = mRawRequest.getAlbums(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    if (albumsResponse.getError() != null) throw new AmpacheApiException(albumsResponse.getError());
 
-                    if(checkAndCache("albums.json",albumsResponse,albumsResponseCached)){
+                    if (checkAndCache(FILENAME_ALBUMS, albumsResponse, albumsResponseCached)) {
                         subscriber.onNext(albumsResponse.getAlbums());
                     }
 
@@ -203,51 +207,16 @@ public enum AmpacheApi {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
-    private <T extends BaseResponse> T getCached(String filename, Class<T> tClass){
-        // return the cached first
-        String cachedJson = FileUtil.getInstance().readStringFile(AmpacheSession.INSTANCE.mContext,filename);
-        T songsResponseCached = new Gson().fromJson(cachedJson,tClass);
-        return songsResponseCached;
-    }
-
     /**
-     *
-     * @param filename
-     * @param response
-     * @param cachedResponse
-     * @return  true if the response and the cached response are not equals,
-     *          thus true the response has changed.
+     * get a list of all the songs
      */
-    private boolean checkAndCache(String filename, BaseResponse response, BaseResponse cachedResponse) {
-        // if nothing is cached cache the response for the first time
-        // if the cached response and the new response are different cache the new one
-        if(cachedResponse==null || !cachedResponse.equals(response)) {
-            // cache the new song response
-            try {
-                FileUtil.getInstance().writeStringFile(AmpacheSession.INSTANCE.mContext,filename,response.toJson());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return true;
-        }
-        return false;
-    }
-
     public Observable<List<Song>> getSongs() {
         return Observable.create(new OnSubscribe<List<Song>>() {
 
             @Override
             public void call(final Subscriber<? super List<Song>> subscriber) {
                 try {
-                    // return the cached first
-//                    String cachedJson = FileUtil.getInstance().readStringFile(AmpacheSession.INSTANCE.mContext,"songs.json");
-//                    SongsResponse songsResponseCached = new Gson().fromJson(cachedJson,SongsResponse.class);
-//                    Log.blu("songsResponseCached",songsResponseCached,cachedJson);
-//                    if (songsResponseCached!=null && songsResponseCached.getError()==null) {
-//                        subscriber.onNext(songsResponseCached.getSongs());
-//                    }
-
-                    SongsResponse songsResponseCached = getCached("songs.json",SongsResponse.class);
+                    SongsResponse songsResponseCached = getCached(FILENAME_SONGS,SongsResponse.class);
                     if (songsResponseCached!=null && songsResponseCached.getError()==null) {
                         subscriber.onNext(songsResponseCached.getSongs());
                     }
@@ -255,15 +224,7 @@ public enum AmpacheApi {
                     SongsResponse songsResponse = mRawRequest.getSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
 
-                    // if nothing is cached cache the response for the first time
-                    // if the cached response and the new response are different cache the new one
-//                    if(songsResponseCached==null || !songsResponseCached.equals(songsResponse)) {
-//                        // cache the new song response
-//                        FileUtil.getInstance().writeStringFile(AmpacheSession.INSTANCE.mContext,"songs.json",songsResponse.toJson());
-//                        subscriber.onNext(songsResponse.getSongs());
-//                    }
-
-                    if(checkAndCache("songs.json",songsResponse,songsResponseCached)){
+                    if(checkAndCache(FILENAME_SONGS,songsResponse,songsResponseCached)){
                         subscriber.onNext(songsResponse.getSongs());
                     }
 
@@ -278,6 +239,9 @@ public enum AmpacheApi {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * get a list of songs from given album
+     */
     public Observable<List<Song>> getSongsFromAlbum(final String albumId) {
         return Observable.create(new OnSubscribe<List<Song>>() {
 
@@ -299,6 +263,9 @@ public enum AmpacheApi {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * ping the server to stay logged in
+     */
     public Observable<PingResponse> ping() {
         return Observable.create(new OnSubscribe<PingResponse>() {
 
@@ -325,5 +292,41 @@ public enum AmpacheApi {
         AmpacheSession.INSTANCE.setAmpachePassword(null);
         AmpacheSession.INSTANCE.setAmpacheUrl(null);
         AmpacheSession.INSTANCE.setAmpacheUser(null);
+    }
+
+    /**
+     * get saved response
+     * @param filename  name of the saved file
+     * @param tClass    .class of the object to return
+     * @return          the saved file
+     */
+    private <T extends BaseResponse> T getCached(String filename, Class<T> tClass){
+        // return the cached first
+        String cachedJson = FileUtil.getInstance().readStringFile(mContext,filename);
+        T songsResponseCached = new Gson().fromJson(cachedJson,tClass);
+        return songsResponseCached;
+    }
+
+    /**
+     *
+     * @param filename
+     * @param response
+     * @param cachedResponse
+     * @return  true if the response and the cached response are not equals,
+     *          thus true the response has changed.
+     */
+    private boolean checkAndCache(String filename, BaseResponse response, BaseResponse cachedResponse) {
+        // if nothing is cached cache the response for the first time
+        // if the cached response and the new response are different cache the new one
+        if(cachedResponse==null || !cachedResponse.equals(response)) {
+            // cache the new song response
+            try {
+                FileUtil.getInstance().writeStringFile(mContext,filename,response.toJson());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+        return false;
     }
 }

@@ -9,13 +9,6 @@ import java.util.HashMap;
 
 public final class MD5 {
     private static char[] hextable = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    static final int DIVISION_NUMBER = 12586;
-    static String timeS;
-    static String mdS;
-    static String clearS;
-    static String criptedS;
-    static long unixTimeDivision;
-    static long unixTime;
 
     //store the known MD5 in a cache
     static HashMap<String, String> _md5Cache = null;

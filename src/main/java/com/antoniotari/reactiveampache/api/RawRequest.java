@@ -46,7 +46,6 @@ public class RawRequest {
     }
 
 
-
     public RawRequest(@NonNull final String ampacheUrl,@NonNull String ampacheUser,@NonNull String ampachePassword){
         mAmpachePassword = ampachePassword;
         mAmpacheUrl = ampacheUrl;

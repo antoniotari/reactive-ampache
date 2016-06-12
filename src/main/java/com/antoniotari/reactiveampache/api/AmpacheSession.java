@@ -20,15 +20,13 @@ public enum AmpacheSession {
     private static final String FILENAME_URL = "com.antoniotari.ampache.library.url";
     private static final String FILENAME_PASSWORD = "com.antoniotari.ampache.library.password";
 
-    Context mContext;
-    SharedPreferences mSharedPreferences;
+    private SharedPreferences mSharedPreferences;
     private HandshakeResponse mHandshakeResponse;
     private String mAmpacheUrl;
     private String mAmpacheUser;
     private String mAmpachePassword;
 
     void init(Context context) {
-        mContext = context.getApplicationContext();
         mSharedPreferences = context.getSharedPreferences(KEY_SHARED_PREFERENCES, Context.MODE_PRIVATE);
     }
 
@@ -37,21 +35,18 @@ public enum AmpacheSession {
     }
 
     void setAmpacheUrl(final String ampacheUrl) {
-        //if(ampacheUrl==null)return;
         mAmpacheUrl = ampacheUrl;
         mSharedPreferences.edit()
                 .putString(FILENAME_URL, ampacheUrl).apply();
     }
 
     void setAmpachePassword(final String ampachePassword) {
-        //if(ampachePassword==null)return;
         mAmpachePassword = ampachePassword;
         mSharedPreferences.edit()
                 .putString(FILENAME_PASSWORD, ampachePassword).apply();
     }
 
     void setAmpacheUser(final String ampacheUser) {
-        //if(ampacheUser==null)return;
         mAmpacheUser = ampacheUser;
         mSharedPreferences.edit()
                 .putString(FILENAME_USER, ampacheUser).apply();
