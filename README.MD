@@ -1,7 +1,7 @@
 <h3>Usage:</h3><br>
 add the library to your project :
 ```java
-    compile project(':reactive-ampache')
+compile project(':reactive-ampache')
 ```
 
 <h3>init the library in your application class:</h3>
@@ -63,6 +63,42 @@ AmpacheApi.INSTANCE.initUser(url,username,password)
 
 ```
 
+<h3>request all the artists:</h3>
+```java
+AmpacheApi.INSTANCE.getArtists())
+    .subscribe(List<Artists> artists -> ....)
+```
+
+<h3>request all the albums:</h3>
+```java
+AmpacheApi.INSTANCE.getAlbums())
+    .subscribe(List<Album> albums -> ....)
+```
+
+<h3>request all the songs:</h3>
+```java
+AmpacheApi.INSTANCE.getSongs())
+    .subscribe(List<Song> songs -> ....)
+```
+
+<h3>request all the albums from a given artist id:</h3>
+```java
+AmpacheApi.INSTANCE.getAlbumsFromArtist(artistId))
+    .subscribe(List<Album> albums -> ....)
+```
+
+<h3>request all songs from a given album id:</h3>
+```java
+AmpacheApi.INSTANCE.getSongsFromAlbum(albumId))
+    .subscribe(List<Song> songs -> ....)
+```
+
+<h3>the ampache session will expire, the expiration time is stored inside the handshake response, to avoid the expiration of the session
+ping the server periodically: </h3>
+```java
+AmpacheApi.INSTANCE.ping())
+    .subscribe(PingResponse pingResponse -> ....)
+```
 
 <h3>error handling:</h3><br>
 for every API request, in the request fails check if the throwable instance returned is instance of AmpacheApiException, in that case you can
