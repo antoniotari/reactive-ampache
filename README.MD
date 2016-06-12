@@ -1,6 +1,5 @@
 <h4>Usage:</h4><br>
 add the library to your project:
-
 ```
 compile project(':reactive-ampache')
 ```
