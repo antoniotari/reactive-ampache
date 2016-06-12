@@ -1,15 +1,15 @@
-Usage:
+<h3>Usage:</h3><br>
 add the library to your project :
 ```java
     compile project(':reactive-ampache')
 ```
 
-init the library in your application class:
+<h3>init the library in your application class:</h3>
 ```java
         AmpacheApi.INSTANCE.initSession(this);
 ```
 
-if the user has already logged in before, and not logged out:
+<h3>if the user has already logged in before, and not logged out:</h3>
 ```java
 if (AmpacheSession.INSTANCE.isUserAuthenticated()) {
     AmpacheApi.INSTANCE.initUser()
@@ -21,7 +21,7 @@ if (AmpacheSession.INSTANCE.isUserAuthenticated()) {
 }
 ```
 
-initialize a new user:
+<h3>initialize a new user:</h3>
 ```java
 String url = "yourAmpacheInstanceURL";
 String username = "yourAmpacheUsername";
@@ -36,7 +36,7 @@ AmpacheApi.INSTANCE.initUser(url,username,password)
 
 ```
 
-after initializing a user, do the handshake to login
+<h3>after initializing a user, do the handshake to login:</h3>
 ```java
 AmpacheApi.INSTANCE.handshake()
     .subscribe(handshakeResponse -> {
@@ -46,7 +46,7 @@ AmpacheApi.INSTANCE.handshake()
 });
 ```
 
-those 2 calls can be chained:
+<h3>those 2 calls can be chained:</h3>
 ```java
 String url = "yourAmpacheInstanceURL";
 String username = "yourAmpacheUsername";
@@ -64,7 +64,7 @@ AmpacheApi.INSTANCE.initUser(url,username,password)
 ```
 
 
-error handling:
+<h3>error handling:</h3><br>
 for every API request, in the request fails check if the throwable instance returned is instance of AmpacheApiException, in that case you can
 cast to it and get other info about the error
 ```java
