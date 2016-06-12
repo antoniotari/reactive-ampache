@@ -1,4 +1,4 @@
-<h3>Usage:</h3><br>
+<h4>Usage:</h4><br>
 add the library to your project :
 ```java
 compile project(':reactive-ampache')
@@ -93,8 +93,9 @@ AmpacheApi.INSTANCE.getSongsFromAlbum(albumId))
     .subscribe(List<Song> songs -> ....)
 ```
 
-<h3>the ampache session will expire, the expiration time is stored inside the handshake response, to avoid the expiration of the session
-ping the server periodically: </h3>
+<h3>ping</h3><br>
+the ampache session will expire, the expiration time is stored inside the handshake response, to avoid the expiration of the session
+ping the server periodically: 
 ```java
 AmpacheApi.INSTANCE.ping())
     .subscribe(PingResponse pingResponse -> ....)
