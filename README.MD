@@ -1,6 +1,7 @@
 <h4>Usage:</h4><br>
 add the library to your project:
-```java
+
+```
 compile project(':reactive-ampache')
 ```
 
