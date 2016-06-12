@@ -4,12 +4,12 @@ add the library to your project :
 compile project(':reactive-ampache')
 ```
 
-<h3>init the library in your application class:</h3>
+<h4>init the library in your application class:</h4>
 ```java
         AmpacheApi.INSTANCE.initSession(this);
 ```
 
-<h3>if the user has already logged in before, and not logged out:</h3>
+<h4>if the user has already logged in before, and not logged out:</h4>
 ```java
 if (AmpacheSession.INSTANCE.isUserAuthenticated()) {
     AmpacheApi.INSTANCE.initUser()
@@ -21,7 +21,7 @@ if (AmpacheSession.INSTANCE.isUserAuthenticated()) {
 }
 ```
 
-<h3>initialize a new user:</h3>
+<h4>initialize a new user:</h4>
 ```java
 String url = "yourAmpacheInstanceURL";
 String username = "yourAmpacheUsername";
@@ -36,7 +36,7 @@ AmpacheApi.INSTANCE.initUser(url,username,password)
 
 ```
 
-<h3>after initializing a user, do the handshake to login:</h3>
+<h4>after initializing a user, do the handshake to login:</h4>
 ```java
 AmpacheApi.INSTANCE.handshake()
     .subscribe(handshakeResponse -> {
@@ -46,7 +46,7 @@ AmpacheApi.INSTANCE.handshake()
 });
 ```
 
-<h3>those 2 calls can be chained:</h3>
+<h4>those 2 calls can be chained:</h4>
 ```java
 String url = "yourAmpacheInstanceURL";
 String username = "yourAmpacheUsername";
@@ -63,37 +63,37 @@ AmpacheApi.INSTANCE.initUser(url,username,password)
 
 ```
 
-<h3>request all the artists:</h3>
+<h4>request all the artists:</h4>
 ```java
 AmpacheApi.INSTANCE.getArtists())
     .subscribe(List<Artists> artists -> ....)
 ```
 
-<h3>request all the albums:</h3>
+<h4>request all the albums:</h4>
 ```java
 AmpacheApi.INSTANCE.getAlbums())
     .subscribe(List<Album> albums -> ....)
 ```
 
-<h3>request all the songs:</h3>
+<h4>request all the songs:</h4>
 ```java
 AmpacheApi.INSTANCE.getSongs())
     .subscribe(List<Song> songs -> ....)
 ```
 
-<h3>request all the albums from a given artist id:</h3>
+<h4>request all the albums from a given artist id:</h4>
 ```java
 AmpacheApi.INSTANCE.getAlbumsFromArtist(artistId))
     .subscribe(List<Album> albums -> ....)
 ```
 
-<h3>request all songs from a given album id:</h3>
+<h4>request all songs from a given album id:</h4>
 ```java
 AmpacheApi.INSTANCE.getSongsFromAlbum(albumId))
     .subscribe(List<Song> songs -> ....)
 ```
 
-<h3>ping</h3><br>
+<h4>ping</h4><br>
 the ampache session will expire, the expiration time is stored inside the handshake response, to avoid the expiration of the session
 ping the server periodically: 
 ```java
@@ -101,7 +101,7 @@ AmpacheApi.INSTANCE.ping())
     .subscribe(PingResponse pingResponse -> ....)
 ```
 
-<h3>error handling:</h3><br>
+<h4>error handling:</h4><br>
 for every API request, in the request fails check if the throwable instance returned is instance of AmpacheApiException, in that case you can
 cast to it and get other info about the error
 ```java
