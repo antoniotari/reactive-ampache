@@ -13,10 +13,10 @@ public class Tag implements Parcelable {
     @Attribute (name = "id")
     private int id;
 
-    @Attribute (name = "count")
+    @Attribute (name = "count", required = false)
     private int count;
 
-    @Text
+    @Text (required = false)
     private String tag;
 
     public int getId() {

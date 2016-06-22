@@ -8,6 +8,7 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import com.antoniotari.reactiveampache.Exceptions.AmpacheApiException;
+import com.antoniotari.reactiveampache.api.RawRequest.PlaylistType;
 import com.antoniotari.reactiveampache.models.Album;
 import com.antoniotari.reactiveampache.models.AlbumsResponse;
 import com.antoniotari.reactiveampache.models.Artist;
@@ -25,6 +26,7 @@ import rx.Observable;
 import rx.Observable.OnSubscribe;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -97,6 +99,15 @@ public enum AmpacheApi {
                 AmpacheSession.INSTANCE.getAmpachePassword());
     }
 
+    private RawRequest getRawRequest() {
+        if(mRawRequest == null){
+            mRawRequest = new RawRequest(AmpacheSession.INSTANCE.getAmpacheUrl(),
+                    AmpacheSession.INSTANCE.getAmpacheUser(),
+                    AmpacheSession.INSTANCE.getAmpachePassword());
+        }
+        return mRawRequest;
+    }
+
     /**
      * before making any API call must handshake with the server
      */
@@ -106,10 +117,8 @@ public enum AmpacheApi {
             @Override
             public void call(final Subscriber<? super HandshakeResponse> subscriber) {
                 try {
-                    HandshakeResponse handshakeResponse = mRawRequest.handshake();
-
+                    HandshakeResponse handshakeResponse = getRawRequest().handshake();
                     if (handshakeResponse.getError() != null) throw new AmpacheApiException(handshakeResponse.getError());
-
                     AmpacheSession.INSTANCE.setHandshakeResponse(handshakeResponse);
                     subscriber.onNext(handshakeResponse);
                     subscriber.onCompleted();
@@ -138,7 +147,7 @@ public enum AmpacheApi {
                         subscriber.onNext(artistsResponseCached.getArtists());
                     }
 
-                    ArtistsResponse artistsResponse = mRawRequest.getArtists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    ArtistsResponse artistsResponse = getRawRequest().getArtists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     if (artistsResponse.getError() != null) throw new AmpacheApiException(artistsResponse.getError());
 
                     if (checkAndCache(FILENAME_ARTISTS, artistsResponse, artistsResponseCached)) {
@@ -151,6 +160,7 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(9)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -166,7 +176,7 @@ public enum AmpacheApi {
             public void call(final Subscriber<? super List<Album>> subscriber) {
                 try {
                     AlbumsResponse albumsResponse =
-                            mRawRequest.getAlbumsFromArtist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), artistId);
+                            getRawRequest().getAlbumsFromArtist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), artistId);
                     if (albumsResponse.getError()!=null) throw new AmpacheApiException(albumsResponse.getError());
                     subscriber.onNext(albumsResponse.getAlbums());
                     subscriber.onCompleted();
@@ -175,6 +185,7 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(9)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -194,7 +205,7 @@ public enum AmpacheApi {
                         subscriber.onNext(albumsResponseCached.getAlbums());
                     }
 
-                    AlbumsResponse albumsResponse = mRawRequest.getAlbums(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    AlbumsResponse albumsResponse = getRawRequest().getAlbums(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     if (albumsResponse.getError() != null) throw new AmpacheApiException(albumsResponse.getError());
 
                     if (checkAndCache(FILENAME_ALBUMS, albumsResponse, albumsResponseCached)) {
@@ -207,10 +218,13 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(9)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
+
+
 
     /**
      * get a list of all the songs
@@ -226,7 +240,7 @@ public enum AmpacheApi {
                         subscriber.onNext(songsResponseCached.getSongs());
                     }
 
-                    SongsResponse songsResponse = mRawRequest.getSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    SongsResponse songsResponse = getRawRequest().getSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
 
                     if(checkAndCache(FILENAME_SONGS,songsResponse,songsResponseCached)){
@@ -239,6 +253,7 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(18)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -254,7 +269,7 @@ public enum AmpacheApi {
             public void call(final Subscriber<? super List<Song>> subscriber) {
                 try {
                     SongsResponse songssResponse =
-                            mRawRequest.getSongsFromAlbum(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), albumId);
+                            getRawRequest().getSongsFromAlbum(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), albumId);
                     if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
                     subscriber.onNext(songssResponse.getSongs());
                     subscriber.onCompleted();
@@ -263,6 +278,7 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(9)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -278,7 +294,7 @@ public enum AmpacheApi {
             public void call(final Subscriber<? super List<Playlist>> subscriber) {
                 try {
                     PlaylistsResponse songssResponse =
-                            mRawRequest.getPlaylists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                            getRawRequest().getPlaylists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
                     subscriber.onNext(songssResponse.getPlaylists());
                     subscriber.onCompleted();
@@ -287,6 +303,7 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(9)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -302,7 +319,7 @@ public enum AmpacheApi {
             public void call(final Subscriber<? super List<Playlist>> subscriber) {
                 try {
                     PlaylistsResponse songssResponse =
-                            mRawRequest.getPlaylist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
+                            getRawRequest().getPlaylist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
                     if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
                     subscriber.onNext(songssResponse.getPlaylists());
                     subscriber.onCompleted();
@@ -311,6 +328,7 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(9)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -326,7 +344,7 @@ public enum AmpacheApi {
             public void call(final Subscriber<? super List<Song>> subscriber) {
                 try {
                     SongsResponse songsResponse =
-                            mRawRequest.getPlaylistSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
+                            getRawRequest().getPlaylistSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
                     if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
                     subscriber.onNext(songsResponse.getSongs());
                     subscriber.onCompleted();
@@ -335,6 +353,32 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
+                .retry(9)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * get a list of songs from given album
+     */
+    public Observable<List<Song>> createPlaylist(final String name) {
+        return Observable.create(new OnSubscribe<List<Song>>() {
+
+            @Override
+            public void call(final Subscriber<? super List<Song>> subscriber) {
+                try {
+                    SongsResponse songsResponse =
+                            getRawRequest().createPlaylist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), name, PlaylistType.PUBLIC);
+                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
+                    subscriber.onNext(songsResponse.getSongs());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .doOnError(doOnError)
                 .retry(9)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -349,7 +393,7 @@ public enum AmpacheApi {
             @Override
             public void call(final Subscriber<? super PingResponse> subscriber) {
                 try {
-                    PingResponse pingResponse = mRawRequest.ping(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    PingResponse pingResponse = getRawRequest().ping(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     HandshakeResponse handshakeResponse = AmpacheSession.INSTANCE.getHandshakeResponse();
                     handshakeResponse.setSession_expire(pingResponse.getSession_expire());
                     AmpacheSession.INSTANCE.setHandshakeResponse(handshakeResponse);
@@ -360,6 +404,7 @@ public enum AmpacheApi {
                 }
             }
         })
+                .doOnError(doOnError)
                 .retry(22)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -410,4 +455,25 @@ public enum AmpacheApi {
     public void cleanupFiles() {
         // TODO remove created files on log out
     }
+
+    Action1<Throwable> doOnError = new Action1<Throwable>() {
+
+        @Override
+        public void call(final Throwable throwable) {
+            try {
+                if ((throwable instanceof AmpacheApiException)) {
+                    int code = Integer.parseInt(((AmpacheApiException) throwable).getAmpacheError().getCode());
+                    if (code >= 400) {
+                        getRawRequest().handshake();
+                    }
+                }
+            }catch (Exception e){
+                try {
+                    getRawRequest().handshake();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    };
 }

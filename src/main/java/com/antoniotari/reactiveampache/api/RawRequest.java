@@ -213,7 +213,7 @@ public class RawRequest {
                 "&name=" + name +
                 "&type=" + type +
                 "&action=playlist_create";
-        Log.blu(mAmpacheUrl+API_ENDPOINT+playlistQuery);
+//        Log.blu(mAmpacheUrl+API_ENDPOINT+playlistQuery);
         final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
         return new SerializeUtils().fromXml(respStr, SongsResponse.class);
     }

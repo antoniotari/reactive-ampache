@@ -14,7 +14,7 @@ public class InfoTag implements Parcelable{
     @Attribute (name = "id")
     private String id;
 
-    @Text
+    @Text (required=false)
     private String name;
 
     public InfoTag(){
