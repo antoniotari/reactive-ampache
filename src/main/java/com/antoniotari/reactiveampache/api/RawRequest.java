@@ -2,26 +2,37 @@ package com.antoniotari.reactiveampache.api;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringDef;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 import com.antoniotari.reactiveampache.models.AlbumsResponse;
 import com.antoniotari.reactiveampache.models.ArtistsResponse;
 import com.antoniotari.reactiveampache.models.HandshakeResponse;
 import com.antoniotari.reactiveampache.models.PingResponse;
+import com.antoniotari.reactiveampache.models.PlaylistsResponse;
 import com.antoniotari.reactiveampache.models.SongsResponse;
 import com.antoniotari.reactiveampache.utils.AmpacheUtils;
+import com.antoniotari.reactiveampache.utils.Log;
 import com.antoniotari.reactiveampache.utils.SerializeUtils;
 
-import okhttp3.Headers;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
 import okhttp3.Response;
-
 
 /**
  * Created by antonio.tari on 5/12/16.
@@ -45,6 +56,13 @@ public class RawRequest {
         int SHORT_TIMEOUT = 2;
     }
 
+    @StringDef ({PlaylistType.PUBLIC, PlaylistType.PRIVATE})
+    @Retention (RetentionPolicy.SOURCE)
+    @interface PlaylistType {
+        String PUBLIC = "public";
+        String PRIVATE = "private";
+    }
+
 
     public RawRequest(@NonNull final String ampacheUrl,@NonNull String ampacheUser,@NonNull String ampachePassword){
         mAmpachePassword = ampachePassword;
@@ -55,18 +73,21 @@ public class RawRequest {
                 .readTimeout(99, TimeUnit.SECONDS)
                 .writeTimeout(99, TimeUnit.SECONDS)
                 .connectTimeout(99, TimeUnit.SECONDS);
+        addUntrusted(bLong, ampacheUrl);
         clientLongTimeout = bLong.build();
 
         Builder bMedium = new Builder()
                 .readTimeout(44, TimeUnit.SECONDS)
                 .writeTimeout(44, TimeUnit.SECONDS)
                 .connectTimeout(44, TimeUnit.SECONDS);
+        addUntrusted(bMedium, ampacheUrl);
         clientMediumTimeout = bMedium.build();
 
         Builder bShort = new Builder()
                 .readTimeout(11, TimeUnit.SECONDS)
                 .writeTimeout(11, TimeUnit.SECONDS)
                 .connectTimeout(11, TimeUnit.SECONDS);
+        addUntrusted(bShort, ampacheUrl);
         clientShortTimeout = bShort.build();
     }
 
@@ -95,10 +116,10 @@ public class RawRequest {
             throw new IOException("Unexpected code " + response);
         }
 
-        Headers responseHeaders = response.headers();
-        for (int i = 0; i < responseHeaders.size(); i++) {
-            System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
-        }
+//        Headers responseHeaders = response.headers();
+//        for (int i = 0; i < responseHeaders.size(); i++) {
+//            System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+//        }
 
         return response.body().string();
     }
@@ -164,10 +185,111 @@ public class RawRequest {
         return new SerializeUtils().fromXml(respStr, SongsResponse.class);
     }
 
+    public PlaylistsResponse getPlaylists(final String auth) throws Exception {
+        String playlistQuery = "auth=" + auth + "&action=playlists";
+        final String respStr = getRequest(playlistQuery, Timeout.MEDIUM_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, PlaylistsResponse.class);
+    }
+
+    public PlaylistsResponse getPlaylist(final String auth, final String playlistId) throws Exception {
+        String playlistQuery = "auth=" + auth +
+                "&filter=" + playlistId +
+                "&action=playlist";
+        final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, PlaylistsResponse.class);
+    }
+
+    public SongsResponse getPlaylistSongs(final String auth, final String playlistId) throws Exception {
+        String playlistQuery = "auth=" + auth +
+                "&filter=" + playlistId +
+                "&action=playlist_songs";
+        final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+    }
+
+    public SongsResponse createPlaylist(final String auth, final String name, @PlaylistType final String type) throws Exception {
+        // FIXME returns 405, parse right response
+        String playlistQuery = "auth=" + auth +
+                "&name=" + name +
+                "&type=" + type +
+                "&action=playlist_create";
+        Log.blu(mAmpacheUrl+API_ENDPOINT+playlistQuery);
+        final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+    }
+
+    public SongsResponse deletePlaylist(final String auth, final String playlistId) throws Exception {
+        // FIXME parse right response
+        String playlistQuery = "auth=" + auth +
+                "&filter=" + playlistId +
+                "&action=playlist_delete";
+        final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+    }
+
+    public SongsResponse playlistAddSong(final String auth, final String playlistId, final String songId) throws Exception {
+        // FIXME parse right response
+        String playlistQuery = "auth=" + auth +
+                "&filter=" + playlistId +
+                "&song=" + songId +
+                "&action=playlist_add_song";
+        final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+    }
+
+    public SongsResponse playlistRemoveSong(final String auth, final String playlistId, final String trackNumber) throws Exception {
+        // FIXME parse right response
+        String playlistQuery = "auth=" + auth +
+                "&filter=" + playlistId +
+                "&track=" + trackNumber +
+                "&action=playlist_remove_song";
+        final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+    }
+
     public PingResponse ping(final String auth) throws Exception {
         String pingQuery = "auth=" + auth + "&action=ping" +"&version=350001";
         final String respStr = getRequest(pingQuery, Timeout.SHORT_TIMEOUT);
         return new SerializeUtils().fromXml(respStr, PingResponse.class);
+    }
+
+    private void addUntrusted(Builder clientBuilder, String url) {
+        if(url==null) return;
+        if(!url.contains("https://")) return;
+
+        try {
+            final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    X509Certificate[] cArrr = new X509Certificate[0];
+                    return cArrr;
+                }
+
+                @Override
+                public void checkServerTrusted(final X509Certificate[] chain,
+                        final String authType) throws CertificateException {
+                }
+
+                @Override
+                public void checkClientTrusted(final X509Certificate[] chain,
+                        final String authType) throws CertificateException {
+                }
+            }};
+
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            clientBuilder.sslSocketFactory(sslContext.getSocketFactory());
+
+            HostnameVerifier hostnameVerifier = new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            };
+            clientBuilder.hostnameVerifier(hostnameVerifier);
+        } catch (KeyManagementException|NoSuchAlgorithmException e){
+
+        }
     }
 
 }

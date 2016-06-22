@@ -13,7 +13,7 @@ import org.simpleframework.xml.Root;
  * Created by antonio.tari on 5/19/16.
  */
 @Root
-public class SongsResponse extends BaseResponse implements Parcelable{
+public class SongsResponse extends BaseResponse implements Parcelable {
 
     @ElementList (inline = true, required = false)
     private List<Song> songs;

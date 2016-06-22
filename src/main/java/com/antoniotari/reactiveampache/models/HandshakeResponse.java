@@ -12,37 +12,37 @@ public class HandshakeResponse extends BaseResponse {
     @Element (name="auth")
     private String auth;
 
-    @Element(name="api")
+    @Element(name="api", required = false)
     private int api;
 
-    @Element (name="session_expire")
+    @Element (name="session_expire", required = false)
     private String session_expire;
 
-    @Element (name="update")
+    @Element (name="update", required = false)
     private String update;
 
-    @Element (name="add")
+    @Element (name="add", required = false)
     private String add;
 
-    @Element (name="clean")
+    @Element (name="clean", required = false)
     private String clean;
 
-    @Element(name="songs")
+    @Element(name="songs", required = false)
     private int songs;
 
-    @Element(name="albums")
+    @Element(name="albums", required = false)
     private int albums;
 
-    @Element(name="artists")
+    @Element(name="artists", required = false)
     private int artists;
 
-    @Element(name="playlists")
+    @Element(name="playlists", required = false)
     private int playlists;
 
-    @Element(name="videos")
+    @Element(name="videos", required = false)
     private int videos;
 
-    @Element(name="catalogs")
+    @Element(name="catalogs", required = false)
     private int catalogs;
 
     public String getAuth() {

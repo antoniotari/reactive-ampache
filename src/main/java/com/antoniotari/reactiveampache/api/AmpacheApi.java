@@ -15,6 +15,8 @@ import com.antoniotari.reactiveampache.models.ArtistsResponse;
 import com.antoniotari.reactiveampache.models.BaseResponse;
 import com.antoniotari.reactiveampache.models.HandshakeResponse;
 import com.antoniotari.reactiveampache.models.PingResponse;
+import com.antoniotari.reactiveampache.models.Playlist;
+import com.antoniotari.reactiveampache.models.PlaylistsResponse;
 import com.antoniotari.reactiveampache.models.Song;
 import com.antoniotari.reactiveampache.models.SongsResponse;
 import com.antoniotari.reactiveampache.utils.FileUtil;
@@ -267,6 +269,78 @@ public enum AmpacheApi {
     }
 
     /**
+     * get a list of songs from given album
+     */
+    public Observable<List<Playlist>> getPlaylists() {
+        return Observable.create(new OnSubscribe<List<Playlist>>() {
+
+            @Override
+            public void call(final Subscriber<? super List<Playlist>> subscriber) {
+                try {
+                    PlaylistsResponse songssResponse =
+                            mRawRequest.getPlaylists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
+                    subscriber.onNext(songssResponse.getPlaylists());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .retry(9)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * get a list of songs from given album
+     */
+    public Observable<List<Playlist>> getPlaylist(final String playlistId) {
+        return Observable.create(new OnSubscribe<List<Playlist>>() {
+
+            @Override
+            public void call(final Subscriber<? super List<Playlist>> subscriber) {
+                try {
+                    PlaylistsResponse songssResponse =
+                            mRawRequest.getPlaylist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
+                    if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
+                    subscriber.onNext(songssResponse.getPlaylists());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .retry(9)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * get a list of songs from given album
+     */
+    public Observable<List<Song>> getPlaylistSongs(final String playlistId) {
+        return Observable.create(new OnSubscribe<List<Song>>() {
+
+            @Override
+            public void call(final Subscriber<? super List<Song>> subscriber) {
+                try {
+                    SongsResponse songsResponse =
+                            mRawRequest.getPlaylistSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
+                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
+                    subscriber.onNext(songsResponse.getSongs());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .retry(9)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
      * ping the server to stay logged in
      */
     public Observable<PingResponse> ping() {
@@ -331,5 +405,9 @@ public enum AmpacheApi {
             return true;
         }
         return false;
+    }
+
+    public void cleanupFiles() {
+        // TODO remove created files on log out
     }
 }
