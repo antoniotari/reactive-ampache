@@ -92,12 +92,12 @@
         "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/drawable/abc_btn_borderless_material.xml"
     },
     {
-        "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/drawable/abc_dialog_material_background_dark.xml",
-        "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/drawable/abc_dialog_material_background_dark.xml"
-    },
-    {
         "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/drawable/abc_ratingbar_full_material.xml",
         "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/drawable/abc_ratingbar_full_material.xml"
+    },
+    {
+        "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/drawable/abc_dialog_material_background_dark.xml",
+        "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/drawable/abc_dialog_material_background_dark.xml"
     },
     {
         "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/drawable/abc_btn_check_material.xml",

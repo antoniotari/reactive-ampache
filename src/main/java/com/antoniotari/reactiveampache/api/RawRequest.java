@@ -20,7 +20,6 @@ import com.antoniotari.reactiveampache.models.PingResponse;
 import com.antoniotari.reactiveampache.models.PlaylistsResponse;
 import com.antoniotari.reactiveampache.models.SongsResponse;
 import com.antoniotari.reactiveampache.utils.AmpacheUtils;
-import com.antoniotari.reactiveampache.utils.Log;
 import com.antoniotari.reactiveampache.utils.SerializeUtils;
 
 import javax.net.ssl.HostnameVerifier;

@@ -80,12 +80,12 @@
         "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/abc_activity_chooser_view.xml"
     },
     {
-        "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/abc_action_mode_close_item_material.xml",
-        "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/abc_action_mode_close_item_material.xml"
-    },
-    {
         "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/abc_alert_dialog_material.xml",
         "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/abc_alert_dialog_material.xml"
+    },
+    {
+        "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/abc_action_mode_close_item_material.xml",
+        "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/abc_action_mode_close_item_material.xml"
     },
     {
         "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/select_dialog_item_material.xml",
@@ -136,12 +136,12 @@
         "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/abc_action_mode_bar.xml"
     },
     {
-        "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/abc_alert_dialog_button_bar_material.xml",
-        "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/abc_alert_dialog_button_bar_material.xml"
-    },
-    {
         "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/select_dialog_singlechoice_material.xml",
         "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/select_dialog_singlechoice_material.xml"
+    },
+    {
+        "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/abc_alert_dialog_button_bar_material.xml",
+        "source": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/res/layout/abc_alert_dialog_button_bar_material.xml"
     },
     {
         "merged": "/Users/antoniotari/android_code/ReactiveAmpacheApp/reactive-ampache/build/intermediates/res/merged/release/layout/abc_list_menu_item_radio.xml",
