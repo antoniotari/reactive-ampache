@@ -9,7 +9,7 @@ import org.simpleframework.xml.Text;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class InfoTag implements Parcelable{
+public class InfoTag implements Parcelable {
 
     @Attribute (name = "id")
     private String id;

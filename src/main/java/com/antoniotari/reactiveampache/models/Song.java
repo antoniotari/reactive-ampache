@@ -1,5 +1,9 @@
 package com.antoniotari.reactiveampache.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import org.simpleframework.xml.Attribute;
@@ -9,7 +13,7 @@ import org.simpleframework.xml.ElementList;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class Song {
+public class Song implements Parcelable {
 
     @Attribute (name = "id", required = false)
     String id;
@@ -70,6 +74,8 @@ public class Song {
 
     @Element (name = "averagerating", required = false)
     float averagerating;
+
+    public Song(){}
 
     public String getId() {
         return id;
@@ -150,4 +156,79 @@ public class Song {
     public float getAveragerating() {
         return averagerating;
     }
+
+    protected Song(Parcel in) {
+        id = in.readString();
+        title = in.readString();
+        artist = (InfoTag) in.readValue(InfoTag.class.getClassLoader());
+        album = (InfoTag) in.readValue(InfoTag.class.getClassLoader());
+        if (in.readByte() == 0x01) {
+            tag = new ArrayList<Tag>();
+            in.readList(tag, Tag.class.getClassLoader());
+        } else {
+            tag = null;
+        }
+        track = in.readInt();
+        time = in.readInt();
+        year = in.readString();
+        bitrate = in.readInt();
+        mode = in.readString();
+        mime = in.readString();
+        url = in.readString();
+        size = in.readInt();
+        mbid = in.readString();
+        album_mbid = in.readString();
+        artist_mbid = in.readString();
+        art = in.readString();
+        preciserating = in.readFloat();
+        rating = in.readFloat();
+        averagerating = in.readFloat();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(title);
+        dest.writeValue(artist);
+        dest.writeValue(album);
+        if (tag == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(tag);
+        }
+        dest.writeInt(track);
+        dest.writeInt(time);
+        dest.writeString(year);
+        dest.writeInt(bitrate);
+        dest.writeString(mode);
+        dest.writeString(mime);
+        dest.writeString(url);
+        dest.writeInt(size);
+        dest.writeString(mbid);
+        dest.writeString(album_mbid);
+        dest.writeString(artist_mbid);
+        dest.writeString(art);
+        dest.writeFloat(preciserating);
+        dest.writeFloat(rating);
+        dest.writeFloat(averagerating);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Song> CREATOR = new Parcelable.Creator<Song>() {
+        @Override
+        public Song createFromParcel(Parcel in) {
+            return new Song(in);
+        }
+
+        @Override
+        public Song[] newArray(int size) {
+            return new Song[size];
+        }
+    };
 }

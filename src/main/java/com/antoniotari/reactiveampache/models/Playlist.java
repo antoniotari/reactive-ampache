@@ -47,6 +47,13 @@ public class Playlist implements Parcelable {
         return type;
     }
 
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    public void setItems(final int items) {
+        this.items = items;
+    }
 
     protected Playlist(Parcel in) {
         id = in.readString();
