@@ -184,6 +184,14 @@ public class RawRequest {
         return new SerializeUtils().fromXml(respStr, SongsResponse.class);
     }
 
+    public SongsResponse searchSongs(final String auth, final String filter) throws Exception {
+        String artistQuery = "auth=" + auth +
+                "&filter=" + filter +
+                "&action=search_songs";
+        final String respStr = getRequest(artistQuery, Timeout.LONG_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+    }
+
     public PlaylistsResponse getPlaylists(final String auth) throws Exception {
         String playlistQuery = "auth=" + auth + "&action=playlists";
         final String respStr = getRequest(playlistQuery, Timeout.MEDIUM_TIMEOUT);

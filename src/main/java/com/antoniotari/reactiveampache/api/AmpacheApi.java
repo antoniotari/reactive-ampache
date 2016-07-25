@@ -225,7 +225,6 @@ public enum AmpacheApi {
     }
 
 
-
     /**
      * get a list of all the songs
      */
@@ -247,6 +246,30 @@ public enum AmpacheApi {
                         subscriber.onNext(songsResponse.getSongs());
                     }
 
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .doOnError(doOnError)
+                .retry(18)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * get a list of all the songs that match the filter
+     */
+    public Observable<List<Song>> searchSongs(final String filter) {
+        return Observable.create(new OnSubscribe<List<Song>>() {
+
+            @Override
+            public void call(final Subscriber<? super List<Song>> subscriber) {
+                try {
+                    SongsResponse songsResponse = getRawRequest().searchSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), filter);
+                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
+                    subscriber.onNext(songsResponse.getSongs());
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     subscriber.onError(e);
