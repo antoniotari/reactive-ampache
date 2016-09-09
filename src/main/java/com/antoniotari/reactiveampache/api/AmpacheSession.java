@@ -31,7 +31,7 @@ public enum AmpacheSession {
     }
 
     public boolean isUserAuthenticated() {
-        return (getAmpachePassword()!=null && getAmpacheUrl()!=null && getAmpacheUser()!=null);
+        return (mHandshakeResponse!=null && getAmpachePassword()!=null && getAmpacheUrl()!=null && getAmpacheUser()!=null);
     }
 
     void setAmpacheUrl(final String ampacheUrl) {
