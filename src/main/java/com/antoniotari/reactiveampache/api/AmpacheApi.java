@@ -70,11 +70,11 @@ public enum AmpacheApi {
      * @param ampachePassword   ampache user password
      * @return                  an observable that will complete if the user is valid otherwise goes onError
      */
-    public Observable<Void> initUser(final String ampacheUrl, String ampacheUser, String ampachePassword) {
-        return Observable.create(new OnSubscribe<Void>() {
+    public Observable<AmpacheSession> initUser(final String ampacheUrl, String ampacheUser, String ampachePassword) {
+        return Observable.create(new OnSubscribe<AmpacheSession>() {
 
             @Override
-            public void call(final Subscriber<? super Void> subscriber) {
+            public void call(final Subscriber<? super AmpacheSession> subscriber) {
                 try {
                     if (ampachePassword == null || ampachePassword.isEmpty()) {
                         throw new Exception("invalid password");
@@ -97,7 +97,7 @@ public enum AmpacheApi {
                     AmpacheSession.INSTANCE.setAmpacheUser(ampacheUser);
                     // initialize raw request
                     mRawRequest = new RawRequest(ampacheUrlMod, ampacheUser, ampachePassword);
-                    subscriber.onNext(null);
+                    subscriber.onNext(AmpacheSession.INSTANCE);
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     subscriber.onError(e);
@@ -109,7 +109,7 @@ public enum AmpacheApi {
     /**
      * use this only if the use already logged in before
      */
-    public Observable<Void> initUser() {
+    public Observable<AmpacheSession> initUser() {
         return initUser(AmpacheSession.INSTANCE.getAmpacheUrl(),
                 AmpacheSession.INSTANCE.getAmpacheUser(),
                 AmpacheSession.INSTANCE.getAmpachePassword());
