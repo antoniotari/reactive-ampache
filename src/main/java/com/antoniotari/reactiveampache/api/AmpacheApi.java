@@ -143,7 +143,7 @@ public enum AmpacheApi {
                 }
             }
         })
-                .retry(9)
+                .retry(4)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
@@ -240,6 +240,53 @@ public enum AmpacheApi {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * get the album from the album id
+     */
+    public Observable<Album> getAlbumFromId(String albumId) {
+        return Observable.create(new OnSubscribe<Album>() {
+
+            @Override
+            public void call(final Subscriber<? super Album> subscriber) {
+                try {
+                    AlbumsResponse albumResponse = getRawRequest().getAlbumFromId(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), albumId);
+                    if (albumResponse.getError()!=null) throw new AmpacheApiException(albumResponse.getError());
+                    subscriber.onNext(albumResponse.getAlbums().get(0));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .doOnError(doOnError)
+                .retry(9)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * get artist from artist id
+     */
+    public Observable<Artist> getArtistFromId(String artistId) {
+        return Observable.create(new OnSubscribe<Artist>() {
+
+            @Override
+            public void call(final Subscriber<? super Artist> subscriber) {
+                try {
+                    ArtistsResponse artistsResponse = getRawRequest().getArtistFromId(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), artistId);
+                    if (artistsResponse.getError()!=null) throw new AmpacheApiException(artistsResponse.getError());
+                    subscriber.onNext(artistsResponse.getArtists().get(0));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .doOnError(doOnError)
+                .retry(9)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
 
     /**
      * get a list of all the songs

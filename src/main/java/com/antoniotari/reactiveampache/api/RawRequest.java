@@ -158,6 +158,24 @@ public class RawRequest {
         return new SerializeUtils().fromXml(respStr, AlbumsResponse.class);
     }
 
+    public AlbumsResponse getAlbumFromId(final String auth, final String albumId) throws Exception {
+        String artistQuery = "auth=" + auth +
+                "&filter=" + albumId +
+                //"&limit=100" +
+                "&action=album";
+        final String respStr = getRequest(artistQuery,Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, AlbumsResponse.class);
+    }
+
+    public ArtistsResponse getArtistFromId(final String auth, final String artistId) throws Exception {
+        String artistQuery = "auth=" + auth +
+                "&filter=" + artistId +
+                //"&limit=100" +
+                "&action=artist";
+        final String respStr = getRequest(artistQuery,Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, ArtistsResponse.class);
+    }
+
     public AlbumsResponse getAlbums(final String auth) throws Exception {
         String artistQuery = "auth=" + auth +
                 //"&limit=100" +
