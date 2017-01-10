@@ -232,6 +232,13 @@ public class RawRequest {
         return new SerializeUtils().fromXml(respStr, SongsResponse.class);
     }
 
+    public SongsResponse getTags(final String auth) throws Exception {
+        String playlistQuery = "auth=" + auth +
+                "&action=tags";
+        final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
+        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+    }
+
     public SongsResponse createPlaylist(final String auth, final String name, @PlaylistType final String type) throws Exception {
         // FIXME returns 405, parse right response
         String playlistQuery = "auth=" + auth +

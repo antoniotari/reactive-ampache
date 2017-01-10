@@ -13,7 +13,7 @@ import org.simpleframework.xml.ElementList;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class Artist implements Parcelable{
+public class Artist implements Parcelable {
     @Attribute (name = "id", required = false)
     private String id;
 
