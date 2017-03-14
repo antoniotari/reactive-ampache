@@ -9,7 +9,7 @@ import org.simpleframework.xml.Element;
 /**
  * Created by antonio tari on 2016-06-21.
  */
-public class Playlist implements Parcelable {
+public class Playlist implements Parcelable, AmpacheModel {
     @Attribute (name = "id", required = false)
     String id;
 

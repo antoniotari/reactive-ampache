@@ -13,7 +13,7 @@ import org.simpleframework.xml.ElementList;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class Song implements Parcelable {
+public class Song implements Parcelable, AmpacheModel {
 
     @Attribute (name = "id", required = false)
     String id;
@@ -79,6 +79,11 @@ public class Song implements Parcelable {
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return title;
     }
 
     public String getTitle() {
