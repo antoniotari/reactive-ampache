@@ -1,5 +1,7 @@
 package com.antoniotari.reactiveampache.models;
 
+import java.util.List;
+
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
 
@@ -34,5 +36,10 @@ public class PingResponse extends BaseResponse {
 
     public String getCompatible() {
         return compatible;
+    }
+
+    @Override
+    public List<? extends AmpacheModel> getItems() {
+        return null;
     }
 }

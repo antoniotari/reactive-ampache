@@ -18,4 +18,8 @@ public class AlbumsResponse extends BaseResponse {
         return albums;
     }
 
+    @Override
+    public List<? extends AmpacheModel> getItems() {
+        return getAlbums();
+    }
 }

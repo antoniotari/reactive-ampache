@@ -1,5 +1,7 @@
 package com.antoniotari.reactiveampache.models;
 
+import java.util.List;
+
 import com.antoniotari.reactiveampache.utils.MD5;
 import com.antoniotari.reactiveampache.utils.SerializeUtils;
 
@@ -8,7 +10,7 @@ import org.simpleframework.xml.Element;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class BaseResponse {
+public abstract class BaseResponse {
 
     @Element (name = "error", required = false)
     private Error error;
@@ -37,4 +39,6 @@ public class BaseResponse {
         BaseResponse otherBs = (BaseResponse) other;
         return MD5.md5(toJson()).equals(MD5.md5(otherBs.toJson()));
     }
+
+    public abstract List<? extends AmpacheModel> getItems();
 }

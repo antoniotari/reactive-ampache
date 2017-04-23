@@ -17,4 +17,9 @@ public class ArtistsResponse extends BaseResponse {
     public List<Artist> getArtists() {
         return artists;
     }
+
+    @Override
+    public List<? extends AmpacheModel> getItems() {
+        return getArtists();
+    }
 }

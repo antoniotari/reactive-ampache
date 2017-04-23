@@ -4,7 +4,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringDef;
 
-import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.security.KeyManagementException;
@@ -13,6 +12,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
+import com.antoniotari.reactiveampache.Exceptions.AmpacheApiException;
 import com.antoniotari.reactiveampache.models.AlbumsResponse;
 import com.antoniotari.reactiveampache.models.ArtistsResponse;
 import com.antoniotari.reactiveampache.models.HandshakeResponse;
@@ -90,7 +90,7 @@ public class RawRequest {
         clientShortTimeout = bShort.build();
     }
 
-    public String getRequest(final String query, @Timeout int timeout) throws IOException {
+    public String getRequest(final String query, @Timeout int timeout) throws Exception {
         Request request = new Request.Builder()
                 .url(mAmpacheUrl + API_ENDPOINT + query)
                 .build();
@@ -112,7 +112,7 @@ public class RawRequest {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
+            throw new AmpacheApiException(String.valueOf(response.code()), response.body().string());
         }
 
 //        Headers responseHeaders = response.headers();

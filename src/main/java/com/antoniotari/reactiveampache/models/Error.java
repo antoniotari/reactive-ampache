@@ -14,6 +14,11 @@ public class Error {
     @Text
     private String error;
 
+    public Error(String code, String error) {
+        this.code = code;
+        this.error = error;
+    }
+
     public String getCode() {
         return code;
     }

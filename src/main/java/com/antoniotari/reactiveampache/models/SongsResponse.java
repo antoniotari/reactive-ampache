@@ -61,4 +61,9 @@ public class SongsResponse extends BaseResponse implements Parcelable {
             return new SongsResponse[size];
         }
     };
+
+    @Override
+    public List<? extends AmpacheModel> getItems() {
+        return getSongs();
+    }
 }

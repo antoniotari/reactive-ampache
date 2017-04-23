@@ -1,5 +1,7 @@
 package com.antoniotari.reactiveampache.models;
 
+import java.util.List;
+
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
 
@@ -95,5 +97,10 @@ public class HandshakeResponse extends BaseResponse {
 
     public void setSession_expire(final String session_expire) {
         this.session_expire = session_expire;
+    }
+
+    @Override
+    public List<? extends AmpacheModel> getItems() {
+        return null;
     }
 }

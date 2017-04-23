@@ -20,6 +20,7 @@ import android.content.Context;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import com.google.gson.Gson;
 
@@ -37,6 +38,7 @@ import com.antoniotari.reactiveampache.models.PlaylistsResponse;
 import com.antoniotari.reactiveampache.models.Song;
 import com.antoniotari.reactiveampache.models.SongsResponse;
 import com.antoniotari.reactiveampache.utils.FileUtil;
+import com.antoniotari.reactiveampache.utils.Log;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -51,9 +53,14 @@ import rx.schedulers.Schedulers;
 public enum AmpacheApi {
     INSTANCE;
 
+    private static final String FILENAME_HANDSHAKE = "com.antoniotari.ampache.library.response.handshake.json";
     private static final String FILENAME_ARTISTS = "com.antoniotari.ampache.library.response.artists.json";
     private static final String FILENAME_ALBUMS = "com.antoniotari.ampache.library.response.albums.json";
+    private static final String FILENAME_ALBUMS_FROM_ARTIST = "ampache.library.resp.albums.%s.json";
     private static final String FILENAME_SONGS = "com.antoniotari.ampache.library.response.songs.json";
+    private static final String FILENAME_SONGS_FROM_ALBUM = "ampache.library.response.songs.%s.json";
+    private static final String FILENAME_PLAYLIST_SONGS = "ampache.library.response.playlis.%s.json";
+    private static final String FILENAME_PLAYLISTS = "ampache.library.response.playlists.json";
 
     private RawRequest mRawRequest;
     private Context mContext;
@@ -124,6 +131,31 @@ public enum AmpacheApi {
         return mRawRequest;
     }
 
+    private <T extends BaseResponse> void call(final Subscriber subscriber, String cacheFilename,
+            Class<T> responseClass, Callable<T> request) {
+
+        try {
+            T artistsResponseCached = getCached(cacheFilename, responseClass);
+            if (artistsResponseCached != null && artistsResponseCached.getError() == null) {
+                Log.log("got albums from cache");
+                subscriber.onNext(artistsResponseCached.getItems());
+            }
+
+            T artistsResponse = request.call();
+            if (artistsResponse.getError() != null) {
+                throw new AmpacheApiException(artistsResponse.getError());
+            }
+
+            if (checkAndCache(cacheFilename, artistsResponse, artistsResponseCached)) {
+                subscriber.onNext(artistsResponse.getItems());
+            }
+
+            subscriber.onCompleted();
+        } catch (Exception e) {
+            subscriber.onError(e);
+        }
+    }
+
     /**
      * before making any API call must handshake with the server
      */
@@ -133,10 +165,36 @@ public enum AmpacheApi {
             @Override
             public void call(final Subscriber<? super HandshakeResponse> subscriber) {
                 try {
-                    HandshakeResponse handshakeResponse = getRawRequest().handshake();
-                    if (handshakeResponse.getError() != null) throw new AmpacheApiException(handshakeResponse.getError());
-                    AmpacheSession.INSTANCE.setHandshakeResponse(handshakeResponse);
-                    subscriber.onNext(handshakeResponse);
+
+                    HandshakeResponse handshakeResponseCached = getCached(FILENAME_HANDSHAKE, HandshakeResponse.class);
+                    HandshakeResponse handshakeResponse = null;
+                    Exception error = null;
+                    try {
+                        handshakeResponse = getRawRequest().handshake();
+                    } catch (Exception e) {
+                        error = e;
+                    }
+
+                    if (error != null || handshakeResponse.getError() != null) {
+                        // if there's a cached version return it before throwing the error
+                        if (handshakeResponseCached != null && handshakeResponseCached.getError() == null) {
+                            subscriber.onNext(handshakeResponseCached);
+                        }
+
+                        if (handshakeResponse!=null && handshakeResponse.getError() != null) {
+                            throw new AmpacheApiException(handshakeResponse.getError());
+                        } else if (error != null) {
+                            throw new AmpacheApiException(error);
+                        } else {
+                            throw new Exception("undefined error");
+                        }
+                    }
+
+                    if (checkAndCache(FILENAME_HANDSHAKE, handshakeResponse, handshakeResponseCached)) {
+                        AmpacheSession.INSTANCE.setHandshakeResponse(handshakeResponse);
+                        subscriber.onNext(handshakeResponse);
+                    }
+
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     subscriber.onError(e);
@@ -153,27 +211,14 @@ public enum AmpacheApi {
      */
     public Observable<List<Artist>> getArtists() {
         return Observable.create(new OnSubscribe<List<Artist>>() {
-
             @Override
             public void call(final Subscriber<? super List<Artist>> subscriber) {
-                try {
-                    ArtistsResponse artistsResponseCached = getCached(FILENAME_ARTISTS, ArtistsResponse.class);
-                    if (artistsResponseCached != null && artistsResponseCached.getError() == null &&
-                            artistsResponseCached.getArtists() != null) {
-                        subscriber.onNext(artistsResponseCached.getArtists());
+                AmpacheApi.this.call(subscriber, FILENAME_ARTISTS, ArtistsResponse.class, new Callable<ArtistsResponse>() {
+                    @Override
+                    public ArtistsResponse call() throws Exception {
+                        return getRawRequest().getArtists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     }
-
-                    ArtistsResponse artistsResponse = getRawRequest().getArtists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
-                    if (artistsResponse.getError() != null) throw new AmpacheApiException(artistsResponse.getError());
-
-                    if (checkAndCache(FILENAME_ARTISTS, artistsResponse, artistsResponseCached)) {
-                        subscriber.onNext(artistsResponse.getArtists());
-                    }
-
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+                });
             }
         })
                 .doOnError(doOnError)
@@ -190,15 +235,24 @@ public enum AmpacheApi {
 
             @Override
             public void call(final Subscriber<? super List<Album>> subscriber) {
-                try {
-                    AlbumsResponse albumsResponse =
-                            getRawRequest().getAlbumsFromArtist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), artistId);
-                    if (albumsResponse.getError()!=null) throw new AmpacheApiException(albumsResponse.getError());
-                    subscriber.onNext(albumsResponse.getAlbums());
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+
+                AmpacheApi.this.call(subscriber, String.format(FILENAME_ALBUMS_FROM_ARTIST, artistId), AlbumsResponse.class, new Callable<AlbumsResponse>() {
+                    @Override
+                    public AlbumsResponse call() throws Exception {
+                        return getRawRequest().getAlbumsFromArtist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), artistId);
+                    }
+                });
+
+
+//                try {
+//                    AlbumsResponse albumsResponse =
+//                            getRawRequest().getAlbumsFromArtist(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), artistId);
+//                    if (albumsResponse.getError()!=null) throw new AmpacheApiException(albumsResponse.getError());
+//                    subscriber.onNext(albumsResponse.getAlbums());
+//                    subscriber.onCompleted();
+//                } catch (Exception e) {
+//                    subscriber.onError(e);
+//                }
             }
         })
                 .doOnError(doOnError)
@@ -215,23 +269,32 @@ public enum AmpacheApi {
 
             @Override
             public void call(final Subscriber<? super List<Album>> subscriber) {
-                try {
-                    AlbumsResponse albumsResponseCached = getCached(FILENAME_ALBUMS, AlbumsResponse.class);
-                    if (albumsResponseCached != null && albumsResponseCached.getError() == null) {
-                        subscriber.onNext(albumsResponseCached.getAlbums());
+
+                AmpacheApi.this.call(subscriber, FILENAME_ALBUMS, AlbumsResponse.class, new Callable<AlbumsResponse>() {
+                    @Override
+                    public AlbumsResponse call() throws Exception {
+                        return getRawRequest().getAlbums(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     }
+                });
 
-                    AlbumsResponse albumsResponse = getRawRequest().getAlbums(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
-                    if (albumsResponse.getError() != null) throw new AmpacheApiException(albumsResponse.getError());
 
-                    if (checkAndCache(FILENAME_ALBUMS, albumsResponse, albumsResponseCached)) {
-                        subscriber.onNext(albumsResponse.getAlbums());
-                    }
-
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+//                try {
+//                    AlbumsResponse albumsResponseCached = getCached(FILENAME_ALBUMS, AlbumsResponse.class);
+//                    if (albumsResponseCached != null && albumsResponseCached.getError() == null) {
+//                        subscriber.onNext(albumsResponseCached.getAlbums());
+//                    }
+//
+//                    AlbumsResponse albumsResponse = getRawRequest().getAlbums(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+//                    if (albumsResponse.getError() != null) throw new AmpacheApiException(albumsResponse.getError());
+//
+//                    if (checkAndCache(FILENAME_ALBUMS, albumsResponse, albumsResponseCached)) {
+//                        subscriber.onNext(albumsResponse.getAlbums());
+//                    }
+//
+//                    subscriber.onCompleted();
+//                } catch (Exception e) {
+//                    subscriber.onError(e);
+//                }
             }
         })
                 .doOnError(doOnError)
@@ -296,23 +359,31 @@ public enum AmpacheApi {
 
             @Override
             public void call(final Subscriber<? super List<Song>> subscriber) {
-                try {
-                    SongsResponse songsResponseCached = getCached(FILENAME_SONGS,SongsResponse.class);
-                    if (songsResponseCached!=null && songsResponseCached.getError()==null) {
-                        subscriber.onNext(songsResponseCached.getSongs());
+                AmpacheApi.this.call(subscriber, FILENAME_SONGS, SongsResponse.class, new Callable<SongsResponse>() {
+                    @Override
+                    public SongsResponse call() throws Exception {
+                        return getRawRequest().getSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     }
+                });
 
-                    SongsResponse songsResponse = getRawRequest().getSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
-                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
 
-                    if(checkAndCache(FILENAME_SONGS,songsResponse,songsResponseCached)){
-                        subscriber.onNext(songsResponse.getSongs());
-                    }
-
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+//                try {
+//                    SongsResponse songsResponseCached = getCached(FILENAME_SONGS,SongsResponse.class);
+//                    if (songsResponseCached!=null && songsResponseCached.getError()==null) {
+//                        subscriber.onNext(songsResponseCached.getSongs());
+//                    }
+//
+//                    SongsResponse songsResponse = getRawRequest().getSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+//                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
+//
+//                    if(checkAndCache(FILENAME_SONGS,songsResponse,songsResponseCached)){
+//                        subscriber.onNext(songsResponse.getSongs());
+//                    }
+//
+//                    subscriber.onCompleted();
+//                } catch (Exception e) {
+//                    subscriber.onError(e);
+//                }
             }
         })
                 .doOnError(doOnError)
@@ -353,15 +424,32 @@ public enum AmpacheApi {
 
             @Override
             public void call(final Subscriber<? super List<Song>> subscriber) {
-                try {
-                    SongsResponse songssResponse =
-                            getRawRequest().getSongsFromAlbum(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), albumId);
-                    if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
-                    subscriber.onNext(songssResponse.getSongs());
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+                AmpacheApi.this.call(subscriber, String.format(FILENAME_SONGS_FROM_ALBUM, albumId), SongsResponse.class, new Callable<SongsResponse>() {
+                    @Override
+                    public SongsResponse call() throws Exception {
+                        return getRawRequest().getSongsFromAlbum(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), albumId);
+                    }
+                });
+
+
+//                try {
+//                    SongsResponse songsResponseCached = getCached(FILENAME_SONGS_FROM_ALBUM, SongsResponse.class);
+//                    if (songsResponseCached != null && songsResponseCached.getError() == null) {
+//                        subscriber.onNext(songsResponseCached.getSongs());
+//                    }
+//
+//                    SongsResponse songsResponse =
+//                            getRawRequest().getSongsFromAlbum(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), albumId);
+//                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
+//
+//                    if (checkAndCache(FILENAME_SONGS_FROM_ALBUM, songsResponse, songsResponseCached)) {
+//                        subscriber.onNext(songsResponse.getSongs());
+//                    }
+//
+//                    subscriber.onCompleted();
+//                } catch (Exception e) {
+//                    subscriber.onError(e);
+//                }
             }
         })
                 .doOnError(doOnError)
@@ -378,15 +466,23 @@ public enum AmpacheApi {
 
             @Override
             public void call(final Subscriber<? super List<Playlist>> subscriber) {
-                try {
-                    PlaylistsResponse songssResponse =
-                            getRawRequest().getPlaylists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
-                    if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
-                    subscriber.onNext(songssResponse.getPlaylists());
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+                AmpacheApi.this.call(subscriber, FILENAME_PLAYLISTS, PlaylistsResponse.class, new Callable<PlaylistsResponse>() {
+                    @Override
+                    public PlaylistsResponse call() throws Exception {
+                        return getRawRequest().getPlaylists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    }
+                });
+
+
+//                try {
+//                    PlaylistsResponse songssResponse =
+//                            getRawRequest().getPlaylists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+//                    if (songssResponse.getError()!=null) throw new AmpacheApiException(songssResponse.getError());
+//                    subscriber.onNext(songssResponse.getPlaylists());
+//                    subscriber.onCompleted();
+//                } catch (Exception e) {
+//                    subscriber.onError(e);
+//                }
             }
         })
                 .doOnError(doOnError)
@@ -428,15 +524,23 @@ public enum AmpacheApi {
 
             @Override
             public void call(final Subscriber<? super List<Song>> subscriber) {
-                try {
-                    SongsResponse songsResponse =
-                            getRawRequest().getPlaylistSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
-                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
-                    subscriber.onNext(songsResponse.getSongs());
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+                AmpacheApi.this.call(subscriber, String.format(FILENAME_PLAYLIST_SONGS, playlistId), SongsResponse.class, new Callable<SongsResponse>() {
+                    @Override
+                    public SongsResponse call() throws Exception {
+                        return getRawRequest().getPlaylistSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
+                    }
+                });
+
+
+//                try {
+//                    SongsResponse songsResponse =
+//                            getRawRequest().getPlaylistSongs(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth(), playlistId);
+//                    if (songsResponse.getError()!=null) throw new AmpacheApiException(songsResponse.getError());
+//                    subscriber.onNext(songsResponse.getSongs());
+//                    subscriber.onCompleted();
+//                } catch (Exception e) {
+//                    subscriber.onError(e);
+//                }
             }
         })
                 .doOnError(doOnError)

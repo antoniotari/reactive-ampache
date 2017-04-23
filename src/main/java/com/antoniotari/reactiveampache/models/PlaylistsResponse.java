@@ -15,4 +15,9 @@ public class PlaylistsResponse extends BaseResponse {
     public List<Playlist> getPlaylists() {
         return playlists;
     }
+
+    @Override
+    public List<? extends AmpacheModel> getItems() {
+        return getPlaylists();
+    }
 }
