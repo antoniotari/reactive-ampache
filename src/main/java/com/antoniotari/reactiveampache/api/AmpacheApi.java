@@ -131,11 +131,15 @@ public enum AmpacheApi {
         return mRawRequest;
     }
 
+    private <T extends BaseResponse> void call(final Subscriber subscriber, Class<T> responseClass, Callable<T> request) {
+        call(subscriber, null, responseClass, request);
+    }
+
     private <T extends BaseResponse> void call(final Subscriber subscriber, String cacheFilename,
             Class<T> responseClass, Callable<T> request) {
 
         try {
-            T artistsResponseCached = getCached(cacheFilename, responseClass);
+            T artistsResponseCached = cacheFilename != null ? getCached(cacheFilename, responseClass) : null;
             if (artistsResponseCached != null && artistsResponseCached.getError() == null) {
                 Log.log("got albums from cache");
                 subscriber.onNext(artistsResponseCached.getItems());
@@ -146,7 +150,7 @@ public enum AmpacheApi {
                 throw new AmpacheApiException(artistsResponse.getError());
             }
 
-            if (checkAndCache(cacheFilename, artistsResponse, artistsResponseCached)) {
+            if (cacheFilename == null || checkAndCache(cacheFilename, artistsResponse, artistsResponseCached)) {
                 subscriber.onNext(artistsResponse.getItems());
             }
 
@@ -612,7 +616,8 @@ public enum AmpacheApi {
      * @param tClass    .class of the object to return
      * @return          the saved file
      */
-    private <T extends BaseResponse> T getCached(String filename, Class<T> tClass){
+    private <T extends BaseResponse> T getCached(String filename, Class<T> tClass) {
+        if (filename == null) return null;
         // return the cached first
         String cachedJson = FileUtil.getInstance().readStringFile(mContext,filename);
         T songsResponseCached = new Gson().fromJson(cachedJson,tClass);
