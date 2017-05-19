@@ -3,12 +3,12 @@ package com.antoniotari.reactiveampache.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by antonio.tari on 5/19/16.
@@ -37,6 +37,9 @@ public class Artist implements Parcelable, AmpacheModel {
 
     @Element (name = "averagerating", required = false)
     private float averagerating;
+
+    @Element (name = "art", required = false)
+    private String art;
 
     /**
      * default constructor to avoid Constructor not matched error
@@ -78,6 +81,10 @@ public class Artist implements Parcelable, AmpacheModel {
         return averagerating;
     }
 
+    public String getArt() {
+        return art;
+    }
+
 
     protected Artist(Parcel in) {
         id = in.readString();
@@ -93,6 +100,7 @@ public class Artist implements Parcelable, AmpacheModel {
         preciserating = in.readFloat();
         rating = in.readFloat();
         averagerating = in.readFloat();
+        art = in.readString();
     }
 
     @Override
@@ -115,6 +123,7 @@ public class Artist implements Parcelable, AmpacheModel {
         dest.writeFloat(preciserating);
         dest.writeFloat(rating);
         dest.writeFloat(averagerating);
+        dest.writeString(art);
     }
 
     @SuppressWarnings("unused")
