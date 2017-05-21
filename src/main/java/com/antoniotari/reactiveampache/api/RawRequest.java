@@ -19,6 +19,7 @@ import com.antoniotari.reactiveampache.models.HandshakeResponse;
 import com.antoniotari.reactiveampache.models.PingResponse;
 import com.antoniotari.reactiveampache.models.PlaylistsResponse;
 import com.antoniotari.reactiveampache.models.SongsResponse;
+import com.antoniotari.reactiveampache.models.TagsResponse;
 import com.antoniotari.reactiveampache.utils.AmpacheUtils;
 import com.antoniotari.reactiveampache.utils.SerializeUtils;
 
@@ -232,11 +233,11 @@ public class RawRequest {
         return new SerializeUtils().fromXml(respStr, SongsResponse.class);
     }
 
-    public SongsResponse getTags(final String auth) throws Exception {
+    public TagsResponse getTags(final String auth) throws Exception {
         String playlistQuery = "auth=" + auth +
                 "&action=tags";
         final String respStr = getRequest(playlistQuery, Timeout.SHORT_TIMEOUT);
-        return new SerializeUtils().fromXml(respStr, SongsResponse.class);
+        return new SerializeUtils().fromXml(respStr, TagsResponse.class);
     }
 
     public SongsResponse createPlaylist(final String auth, final String name, @PlaylistType final String type) throws Exception {

@@ -3,13 +3,17 @@ package com.antoniotari.reactiveampache.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
 
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class Album implements Parcelable, AmpacheModel {
+public class Album implements Parcelable, AmpacheModel, Sortable, Taggable {
     @Attribute (name = "id", required = false)
     private String id;
 
@@ -40,12 +44,20 @@ public class Album implements Parcelable, AmpacheModel {
     @Element (name = "averagerating", required = false)
     private float averagerating;
 
+    @ElementList (inline = true, required = false)
+    List<Tag> tag;
+
     public Album(){
 
     }
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public List<Tag> getTags() {
+        return tag;
     }
 
     public String getName() {
@@ -97,6 +109,12 @@ public class Album implements Parcelable, AmpacheModel {
         preciserating = in.readFloat();
         rating = in.readFloat();
         averagerating = in.readFloat();
+        if (in.readByte() == 0x01) {
+            tag = new ArrayList<Tag>();
+            in.readList(tag, Tag.class.getClassLoader());
+        } else {
+            tag = null;
+        }
     }
 
     @Override
@@ -116,6 +134,12 @@ public class Album implements Parcelable, AmpacheModel {
         dest.writeFloat(preciserating);
         dest.writeFloat(rating);
         dest.writeFloat(averagerating);
+        if (tag == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(tag);
+        }
     }
 
     @SuppressWarnings("unused")
@@ -130,4 +154,19 @@ public class Album implements Parcelable, AmpacheModel {
             return new Album[size];
         }
     };
+
+    @Override
+    public String getSortName() {
+        return getName();
+    }
+
+    @Override
+    public String getSortYear() {
+        return getYear();
+    }
+
+    @Override
+    public String getSortTag() {
+        return getArtist().getName();
+    }
 }

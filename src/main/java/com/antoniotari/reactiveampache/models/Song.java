@@ -13,7 +13,7 @@ import org.simpleframework.xml.ElementList;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class Song implements Parcelable, AmpacheModel {
+public class Song implements Parcelable, AmpacheModel, Sortable, Taggable {
 
     @Attribute (name = "id", required = false)
     String id;
@@ -82,6 +82,11 @@ public class Song implements Parcelable, AmpacheModel {
     }
 
     @Override
+    public List<Tag> getTags() {
+        return tag;
+    }
+
+    @Override
     public String getName() {
         return title;
     }
@@ -96,10 +101,6 @@ public class Song implements Parcelable, AmpacheModel {
 
     public InfoTag getAlbum() {
         return album;
-    }
-
-    public List<Tag> getTag() {
-        return tag;
     }
 
     public int getTrack() {
@@ -236,4 +237,19 @@ public class Song implements Parcelable, AmpacheModel {
             return new Song[size];
         }
     };
+
+    @Override
+    public String getSortName() {
+        return getTitle();
+    }
+
+    @Override
+    public String getSortYear() {
+        return getYear();
+    }
+
+    @Override
+    public String getSortTag() {
+        return String.valueOf(getTrack());
+    }
 }

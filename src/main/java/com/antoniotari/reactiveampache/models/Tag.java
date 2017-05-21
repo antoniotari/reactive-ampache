@@ -9,18 +9,24 @@ import org.simpleframework.xml.Text;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class Tag implements Parcelable {
+public class Tag implements Parcelable, AmpacheModel {
     @Attribute (name = "id")
-    private int id;
+    int id;
 
     @Attribute (name = "count", required = false)
-    private int count;
+    int count;
 
     @Text (required = false)
-    private String tag;
+    String tag;
 
-    public int getId() {
-        return id;
+    @Override
+    public String getName() {
+        return tag;
+    }
+
+    @Override
+    public String getId() {
+        return String.valueOf(id);
     }
 
     public int getCount() {
@@ -31,7 +37,7 @@ public class Tag implements Parcelable {
         return tag;
     }
 
-    public Tag(){
+    public Tag() {
 
     }
 

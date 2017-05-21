@@ -13,7 +13,7 @@ import org.simpleframework.xml.ElementList;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class Artist implements Parcelable, AmpacheModel {
+public class Artist implements Parcelable, AmpacheModel, Taggable {
     @Attribute (name = "id", required = false)
     private String id;
 
@@ -54,7 +54,8 @@ public class Artist implements Parcelable, AmpacheModel {
         return name;
     }
 
-    public List<Tag> getTag() {
+    @Override
+    public List<Tag> getTags() {
         return tag;
     }
 

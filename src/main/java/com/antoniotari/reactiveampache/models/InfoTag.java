@@ -9,7 +9,7 @@ import org.simpleframework.xml.Text;
 /**
  * Created by antonio.tari on 5/19/16.
  */
-public class InfoTag implements Parcelable {
+public class InfoTag implements Parcelable, AmpacheModel {
 
     @Attribute (name = "id")
     private String id;
@@ -17,14 +17,16 @@ public class InfoTag implements Parcelable {
     @Text (required=false)
     private String name;
 
-    public InfoTag(){
+    public InfoTag() {
 
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }

@@ -37,6 +37,8 @@ import com.antoniotari.reactiveampache.models.Playlist;
 import com.antoniotari.reactiveampache.models.PlaylistsResponse;
 import com.antoniotari.reactiveampache.models.Song;
 import com.antoniotari.reactiveampache.models.SongsResponse;
+import com.antoniotari.reactiveampache.models.Tags;
+import com.antoniotari.reactiveampache.models.TagsResponse;
 import com.antoniotari.reactiveampache.utils.FileUtil;
 import com.antoniotari.reactiveampache.utils.Log;
 
@@ -55,6 +57,7 @@ public enum AmpacheApi {
 
     private static final String FILENAME_HANDSHAKE = "com.antoniotari.ampache.library.response.handshake.json";
     private static final String FILENAME_ARTISTS = "com.antoniotari.ampache.library.response.artists.json";
+    private static final String FILENAME_TAGS = "com.antoniotari.ampache.library.response.tags.json";
     private static final String FILENAME_ALBUMS = "com.antoniotari.ampache.library.response.albums.json";
     private static final String FILENAME_ALBUMS_FROM_ARTIST = "ampache.library.resp.albums.%s.json";
     private static final String FILENAME_SONGS = "com.antoniotari.ampache.library.response.songs.json";
@@ -223,6 +226,28 @@ public enum AmpacheApi {
                         return getRawRequest().getArtists(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
                     }
                 });
+            }
+        })
+                .doOnError(doOnError)
+                .retry(9)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * get a list of all the artists
+     */
+    public Observable<Tags> getTags() {
+        return Observable.create(new OnSubscribe<Tags>() {
+            @Override
+            public void call(final Subscriber<? super Tags> subscriber) {
+                try {
+                    TagsResponse tagsResponse = getRawRequest().getTags(AmpacheSession.INSTANCE.getHandshakeResponse().getAuth());
+                    subscriber.onNext(tagsResponse.getTags());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
             }
         })
                 .doOnError(doOnError)
