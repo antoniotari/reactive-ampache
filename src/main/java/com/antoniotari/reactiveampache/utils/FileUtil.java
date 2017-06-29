@@ -5,6 +5,9 @@ import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -27,9 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * @author Antonio Tari
@@ -217,15 +217,15 @@ public final class FileUtil {
 
             InputStreamReader in = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(in);
-            String data = br.readLine();
+            StringBuilder data = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) {
-                data += line;
+                data.append(line);
             }
             br.close();
             in.close();
             fis.close();
-            return data;
+            return data.toString();
 			/*byte[] buffer = new byte[1];
 			//int length;
 			while ((//length =
