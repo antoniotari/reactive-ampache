@@ -4,6 +4,8 @@ import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.antoniotari.reactiveampache.models.Sortable;
 import com.antoniotari.reactiveampache.models.Sortable.SortOption;
@@ -39,12 +41,25 @@ public class AmpacheUtils {
                     case YEAR:
                         return o1.getSortYear().compareTo(o2.getSortYear());
                     case TAG:
-                        return o1.getSortTag().compareTo(o2.getSortTag());
+                        String tag1 = o1.getSortTag();
+                        String tag2 = o2.getSortTag();
+                        // tag might be track number
+                        if(isNumber(tag1) && isNumber(tag2)) {
+                            return Integer.parseInt(tag1) - Integer.parseInt(tag2);
+                        } else {
+                            return tag1.compareTo(tag2);
+                        }
                     case NAME:
                     default:
                         return o1.getSortName().compareTo(o2.getSortName());
                 }
             }
         });
+    }
+
+    public static boolean isNumber(String str) {
+        Pattern pattern = Pattern.compile("^-?\\d+\\.?\\d*$");
+        Matcher matcher = pattern.matcher(str);
+        return matcher.matches();
     }
 }
