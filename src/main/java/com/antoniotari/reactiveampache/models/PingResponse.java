@@ -13,14 +13,16 @@ public class PingResponse extends BaseResponse {
     @Element (name="session_expire", required = false)
     private String session_expire;
 
-    @Element (name="server")
+    @Element (name="server", required = false)
     private String server;
 
-    @Element (name="version")
+    @Element (name="version", required = false)
     private String version;
 
-    @Element (name="compatible")
+    @Element (name="compatible", required = false)
     private String compatible;
+
+    public PingResponse() {}
 
     public String getSession_expire() {
         return session_expire;

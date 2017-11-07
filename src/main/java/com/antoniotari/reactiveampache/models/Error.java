@@ -14,6 +14,10 @@ public class Error {
     @Text
     private String error;
 
+    public Error() {
+
+    }
+
     public Error(String code, String error) {
         this.code = code;
         this.error = error;

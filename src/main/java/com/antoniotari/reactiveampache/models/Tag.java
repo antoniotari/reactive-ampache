@@ -37,9 +37,7 @@ public class Tag implements Parcelable, AmpacheModel {
         return tag;
     }
 
-    public Tag() {
-
-    }
+    public Tag() {}
 
     protected Tag(Parcel in) {
         id = in.readInt();

@@ -17,9 +17,7 @@ public class InfoTag implements Parcelable, AmpacheModel {
     @Text (required=false)
     private String name;
 
-    public InfoTag() {
-
-    }
+    public InfoTag() {}
 
     @Override
     public String getId() {
