@@ -105,6 +105,10 @@ public class Tags {
     }
 
     private List<Tag> mapToList(Map<String,Tag> map, boolean sort) {
+        // initial conditions
+        if (map == null) return new ArrayList<>();
+        if (map.isEmpty()) return new ArrayList<>();
+
         List<Tag> tagList = new ArrayList<>();
         for (Map.Entry<String, Tag> entry : map.entrySet()) {
             Tag value = entry.getValue();
@@ -114,6 +118,9 @@ public class Tags {
             Collections.sort(tagList, new Comparator<Tag>() {
                 @Override
                 public int compare(final Tag o1, final Tag o2) {
+                    if (o1 == null && o2==null) return 0;
+                    if (o1 == null && o2!=null) return "".compareTo(o2.getName());
+                    if (o2 == null && o1!=null) return o1.getName().compareTo("");
                     return o1.getName().compareTo(o2.getName());
                 }
             });

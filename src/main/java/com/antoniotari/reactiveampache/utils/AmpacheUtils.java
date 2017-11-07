@@ -39,10 +39,20 @@ public class AmpacheUtils {
             public int compare(final T o1, final T o2) {
                 switch (sortoption) {
                     case YEAR:
-                        return o1.getSortYear().compareTo(o2.getSortYear());
+                        String year1 = null;
+                        String year2 = null;
+                        if (o1 == null || o1.getSortYear() == null) year1 = "0";
+                        if (o2 == null || o2.getSortYear() == null) year2 = "0";
+                        if (year1 == null) year1 = o1.getSortYear();
+                        if (year2 == null) year2 = o2.getSortYear();
+                        return year1.compareTo(year2);
                     case TAG:
-                        String tag1 = o1.getSortTag();
-                        String tag2 = o2.getSortTag();
+                        String tag1 = null;
+                        String tag2 = null;
+                        if (o1 == null || o1.getSortTag() == null) tag1 = "0";
+                        if (o2 == null || o2.getSortTag() == null) tag2 = "0";
+                        if (tag1 == null) tag1 = o1.getSortTag();
+                        if (tag2 == null) tag2 = o2.getSortTag();
                         // tag might be track number
                         if(isNumber(tag1) && isNumber(tag2)) {
                             return Integer.parseInt(tag1) - Integer.parseInt(tag2);
@@ -51,7 +61,13 @@ public class AmpacheUtils {
                         }
                     case NAME:
                     default:
-                        return o1.getSortName().compareTo(o2.getSortName());
+                        String name1 = null;
+                        String name2 = null;
+                        if (o1 == null || o1.getSortName() == null) name1 = "";
+                        if (o2 == null || o2.getSortName() == null) name2 = "";
+                        if (name1 == null) name1 = o1.getSortName();
+                        if (name2 == null) name2 = o2.getSortName();
+                        return name1.compareTo(name2);
                 }
             }
         });
