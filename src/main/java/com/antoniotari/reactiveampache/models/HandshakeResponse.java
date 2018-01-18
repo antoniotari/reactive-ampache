@@ -11,7 +11,7 @@ import org.simpleframework.xml.Root;
 @Root
 public class HandshakeResponse extends BaseResponse {
 
-    @Element (name="auth")
+    @Element (name="auth", required = false)
     private String auth;
 
     @Element(name="api", required = false)

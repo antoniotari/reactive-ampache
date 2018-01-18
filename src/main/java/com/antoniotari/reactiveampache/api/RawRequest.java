@@ -126,6 +126,9 @@ public class RawRequest {
 
     public HandshakeResponse handshake(final String user, final String password) throws Exception {
         String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        //String timestamp = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) + "";
+        //String timestamp = Long.toString(System.currentTimeMillis() / 1000);
+
         String key = AmpacheUtils.sha256(password);
         String passphrase = AmpacheUtils.sha256(timestamp + key);
         String handshakeQuery = "action=handshake&auth=" +
