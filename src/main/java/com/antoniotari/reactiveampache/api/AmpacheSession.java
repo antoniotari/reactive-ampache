@@ -31,7 +31,8 @@ public enum AmpacheSession {
     }
 
     public boolean isUserAuthenticated() {
-        return (getHandshakeResponse() != null && getAmpachePassword() != null && getAmpacheUrl() != null && getAmpacheUser() != null);
+        return (getHandshakeResponse() != null && getAmpachePassword() != null && getAmpacheUrl() != null && getAmpacheUser() != null)
+                && getHandshakeResponse().getAuth() != null;
     }
 
     void setAmpacheUrl(final String ampacheUrl) {
@@ -106,5 +107,10 @@ public enum AmpacheSession {
             handshakeResponse = new SerializeUtils().fromJson(handshakeString, HandshakeResponse.class);
         }
         return handshakeResponse;
+    }
+
+    public void clearToken() {
+        mSharedPreferences.edit()
+                .putString(FILENAME_HANDSHAKE_RESPONSE, "").commit();
     }
 }

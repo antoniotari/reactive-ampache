@@ -19,7 +19,9 @@ package com.antoniotari.reactiveampache.api;
 import android.content.Context;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import com.google.gson.Gson;
@@ -39,8 +41,10 @@ import com.antoniotari.reactiveampache.models.Song;
 import com.antoniotari.reactiveampache.models.SongsResponse;
 import com.antoniotari.reactiveampache.models.Tags;
 import com.antoniotari.reactiveampache.models.TagsResponse;
+import com.antoniotari.reactiveampache.utils.AmpacheUtils;
 import com.antoniotari.reactiveampache.utils.FileUtil;
 import com.antoniotari.reactiveampache.utils.Log;
+import com.antoniotari.reactiveampache.utils.MD5;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -67,6 +71,8 @@ public enum AmpacheApi {
 
     private RawRequest mRawRequest;
     private Context mContext;
+
+    private final Set<String> filenamesUsed = new HashSet<>();
 
     public void initSession(Context context) {
         AmpacheSession.INSTANCE.init(context);
@@ -138,23 +144,33 @@ public enum AmpacheApi {
         call(subscriber, null, responseClass, request);
     }
 
+    private String urlUserHash() {
+        return MD5.md5(AmpacheSession.INSTANCE.getAmpacheUrl() + AmpacheSession.INSTANCE.getAmpacheUser());
+    }
+
     private <T extends BaseResponse> void call(final Subscriber subscriber, String cacheFilename,
             Class<T> responseClass, Callable<T> request) {
 
+        cacheFilename = cacheFilename + urlUserHash();
+
         try {
-            T artistsResponseCached = cacheFilename != null ? getCached(cacheFilename, responseClass) : null;
-            if (artistsResponseCached != null && artistsResponseCached.getError() == null) {
+            T dataResponseCached = cacheFilename != null ? getCached(cacheFilename, responseClass) : null;
+            if (dataResponseCached != null && dataResponseCached.getError() == null) {
                 Log.log("got albums from cache");
-                subscriber.onNext(artistsResponseCached.getItems());
+                subscriber.onNext(dataResponseCached.getItems());
             }
 
-            T artistsResponse = request.call();
-            if (artistsResponse.getError() != null) {
-                throw new AmpacheApiException(artistsResponse.getError());
-            }
+            if (AmpacheUtils.isInternetConnected(mContext) && getRawRequest().isServerUp()) {
 
-            if (cacheFilename == null || checkAndCache(cacheFilename, artistsResponse, artistsResponseCached)) {
-                subscriber.onNext(artistsResponse.getItems());
+                T dataResponse = request.call();
+
+                if (dataResponse.getError() != null) {
+                    throw new AmpacheApiException(dataResponse.getError());
+                }
+
+                if (cacheFilename == null || checkAndCache(cacheFilename, dataResponse, dataResponseCached)) {
+                    subscriber.onNext(dataResponse.getItems());
+                }
             }
 
             subscriber.onCompleted();
@@ -169,11 +185,13 @@ public enum AmpacheApi {
     public Observable<HandshakeResponse> handshake() {
         return Observable.create(new OnSubscribe<HandshakeResponse>() {
 
+            final String filename = FILENAME_HANDSHAKE + urlUserHash();
+
             @Override
             public void call(final Subscriber<? super HandshakeResponse> subscriber) {
                 try {
 
-                    HandshakeResponse handshakeResponseCached = getCached(FILENAME_HANDSHAKE, HandshakeResponse.class);
+                    HandshakeResponse handshakeResponseCached = getCached(filename, HandshakeResponse.class);
                     HandshakeResponse handshakeResponse = null;
                     Exception error = null;
                     try {
@@ -197,13 +215,16 @@ public enum AmpacheApi {
                         }
                     }
 
-                    if (checkAndCache(FILENAME_HANDSHAKE, handshakeResponse, handshakeResponseCached)) {
+                    if (handshakeResponse != null && checkAndCache(filename, handshakeResponse, handshakeResponseCached)) {
                         AmpacheSession.INSTANCE.setHandshakeResponse(handshakeResponse);
                         subscriber.onNext(handshakeResponse);
                     }
 
                     subscriber.onCompleted();
                 } catch (Exception e) {
+                    if (!AmpacheUtils.isInternetConnected(mContext) || !getRawRequest().isServerUp()) {
+                        subscriber.onCompleted();
+                    }
                     subscriber.onError(e);
                 }
             }
@@ -660,6 +681,10 @@ public enum AmpacheApi {
     private boolean checkAndCache(String filename, BaseResponse response, BaseResponse cachedResponse) {
         // if nothing is cached cache the response for the first time
         // if the cached response and the new response are different cache the new one
+
+        // add file name to the list so it can be cleaned up later
+        filenamesUsed.add(filename);
+
         if(cachedResponse==null || !cachedResponse.equals(response)) {
             // cache the new song response
             try {
@@ -673,27 +698,30 @@ public enum AmpacheApi {
     }
 
     public void cleanupFiles() {
-        // TODO remove created files on log out
+        if (filenamesUsed.isEmpty()) return;
+        // remove created files on log out
+        FileUtil.getInstance().deleteFiles(mContext, filenamesUsed.toArray(new String[filenamesUsed.size()]));
     }
 
     Action1<Throwable> doOnError = new Action1<Throwable>() {
 
         @Override
         public void call(final Throwable throwable) {
-            try {
-                if ((throwable instanceof AmpacheApiException)) {
-                    int code = Integer.parseInt(((AmpacheApiException) throwable).getAmpacheError().getCode());
-                    if (code >= 400) {
-                        getRawRequest().handshake();
-                    }
-                }
-            }catch (Exception e){
-                try {
-                    getRawRequest().handshake();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            }
+            // FIXME: this block might have to run on a background thread
+//            try {
+//                if ((throwable instanceof AmpacheApiException)) {
+//                    int code = Integer.parseInt(((AmpacheApiException) throwable).getAmpacheError().getCode());
+//                    if (code >= 400) {
+//                        getRawRequest().handshake();
+//                    }
+//                }
+//            }catch (Exception e){
+//                try {
+//                    getRawRequest().handshake();
+//                } catch (Exception e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
         }
     };
 }

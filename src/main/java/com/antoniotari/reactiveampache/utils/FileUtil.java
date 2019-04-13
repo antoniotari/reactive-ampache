@@ -4,9 +4,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import android.text.TextUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -30,6 +28,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * @author Antonio Tari
@@ -161,9 +162,8 @@ public final class FileUtil {
     //------------------------------------------------------------------
     //--------------
     public synchronized boolean writeStringFile(Context context, String filename, String string) throws FileNotFoundException, IOException {
-        if (string == null) {
-            return false;
-        }
+        if (string == null) return false;
+
         //if the saved file is the same as the file we want to save return
         String actualFile = readStringFile(context, filename);
         if (actualFile != null && compare(string, actualFile)) {
@@ -236,6 +236,22 @@ public final class FileUtil {
 			return new String(fileContent);*/
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public void deleteFiles(Context context, String... filenames) {
+        Log.blu("delete files");
+        if (filenames == null) return;
+        if (filenames.length == 0) return;
+        for (String name: filenames) {
+            if (!TextUtils.isEmpty(name)) {
+                try {
+                    context.deleteFile(name);
+                    Log.blu("delete "+name);
+                } catch (Exception e) {
+                    Log.error(e);
+                }
+            }
         }
     }
 

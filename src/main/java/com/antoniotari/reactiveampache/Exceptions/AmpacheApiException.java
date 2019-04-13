@@ -23,7 +23,7 @@ public class AmpacheApiException extends Exception {
 
     public AmpacheApiException(final Throwable throwable) {
         super(throwable);
-        mAmpacheError = new Error(CODE_UNDEFINED, throwable.getLocalizedMessage());
+        mAmpacheError = new Error(CODE_UNDEFINED, throwable);
     }
 
     public AmpacheApiException(final String code, final String message) {

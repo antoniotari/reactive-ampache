@@ -14,8 +14,16 @@ public class Error {
     @Text
     private String error;
 
+    private Throwable throwable;
+
     public Error() {
 
+    }
+
+    public Error(String code, Throwable throwable) {
+        this.code = code;
+        this.error = throwable.getLocalizedMessage();
+        this.throwable = throwable;
     }
 
     public Error(String code, String error) {
@@ -29,5 +37,9 @@ public class Error {
 
     public String getError() {
         return error;
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
     }
 }

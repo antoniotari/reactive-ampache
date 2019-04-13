@@ -6,6 +6,7 @@ import android.support.annotation.StringDef;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.net.SocketTimeoutException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -138,6 +139,16 @@ public class RawRequest {
 
         final String respStr = getRequest(handshakeQuery, Timeout.SHORT_TIMEOUT);
         return new SerializeUtils().fromXml(respStr, HandshakeResponse.class);
+    }
+
+    public boolean isServerUp() {
+        try {
+            return getRequest("", Timeout.MEDIUM_TIMEOUT) != null;
+        } catch (SocketTimeoutException socketExc) {
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public HandshakeResponse handshake() throws Exception {
